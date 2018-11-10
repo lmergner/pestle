@@ -25,8 +25,8 @@ Base = declarative_base(cls=models.Mixin)
 class Simple(Base):
     __tablename__ = 'simple'
 
-class Blog(models.Searchable, Base):
-    __tablename__ = 'blog'
+class Post(models.Searchable, Base):
+    __tablename__ = 'post'
 
 class User(models.Admin, Base):
     __tablename__ = 'user'

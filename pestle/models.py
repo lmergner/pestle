@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
-""" """
+""" pestle.models
 
-from contextlib import AbstractContextManager
+Mixin and other helpers for SQLAlchemy
+"""
+# https://sqlalchemy-utils.readthedocs.io/
+# https://github.com/openstack/sqlalchemy-migrate
+
 import uuid
 
 from passlib.context import CryptContext
@@ -70,13 +74,19 @@ class Mixin:
 
 
 class Searchable:
-    """ An SQLAlchemy ORM mixin that provides a searchable interface using Postgres TSVECTOR columns """
-
+    """ An SQLAlchemy ORM mixin that provides a searchable interface using Postgres TSVECTOR columns 
+    
+    :example:
+    >>> class Text(Searchable, Base):
+    >>>     pass
+    
+    """
+    # Original inspiration: http://shisaa.jp/postset/postgresql-full-text-search-part-1.html
     # __abstract__ = True
 
-    _trigger_ddl = DDL(
+    _trigger_ddl = (
         # TODO: customize the trigger name
-        "create trigger ts_update before insert or update on text for "
+        "create trigger ts_update before insert or update on {tablename} for "
         "each row execute procedure tsvector_update_trigger(tsvector, "
         "'pg_catalog.english', 'text');"
     )
@@ -92,26 +102,18 @@ class Searchable:
     @declared_attr
     def __table_args__(cls):
         # Must return a tuple
-        return (Index(
-            "tsvector_idx_%s" % cls.__tablename__,
-            "tsvector",
-            postgresql_using="gin",
-        ),)
+        return (
+            # CREATE INDEX tsvector_idx ON feedback USING gin(to_tsvector('english', message));
+            Index(
+                "tsvector_idx_%s" % cls.__tablename__,
+                "tsvector",
+                postgresql_using="gin",
+        ), {
+            # Per Mike Bayer
+            # https://groups.google.com/d/msg/sqlalchemy/CrjqfxdEOyM/7WnZ80HgAwAJ
+            "listeners": [("after_create", DDL(cls._trigger_ddl.format(tablename=cls.__name__)).execute_if(dialect="postgresql"))]
+        })
 
-    @classmethod
-    def __declare_last__(cls):
-        # CREATE INDEX tsvector_idx ON feedback USING gin(to_tsvector('english', message));
-        event.listen(
-            cls,
-            "after_create",
-            cls._trigger_ddl.execute_if(dialect="postgresql"),
-        )
-
-    def search(self, sess, term):
-        raise NotImplementedError(
-            "Searching as a model method is not yet supported"
-            ">>> session.query(Model).filter(Text.tsvector.op('@@')(func.plainto_tsquery(search_term))).all()"
-        )
 
 class Admin:
     """ Admin mixin """
@@ -123,7 +125,7 @@ class Admin:
         deprecated=["plaintext"],
         bcrypt__min_rounds=13,
     )
-    token = Column(String, unique=True)
+    token = Column(String, unique=True, default=None)
     token_updated = Column(DateTime(timezone=True))
     _password = Column("password", String)
     password_updated = Column(DateTime(timezone=True))
@@ -144,10 +146,12 @@ class Admin:
 
     @password.setter
     def password(self, password):
+        # TODO:  support for expiring passwords
         self._password = self._pass_context.encrypt(password)
         self.password_updated = utcnow()
 
     def generate_token(self):
+        # TODO:  support for expiring tokens      
         self.token = uuid.uuid4().hex
         self.token_updated = utcnow()
         return self.token

@@ -1,6 +1,4 @@
-======
-pestle
-======
+# Pestle
 
 A collection of ORM mixins and snippet for SQLAlchemy projects
 

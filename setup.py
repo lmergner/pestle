@@ -5,6 +5,8 @@
 
 from setuptools import setup
 
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
     author="Luke Thomas Mergner",
@@ -22,20 +24,20 @@ setup(
         # 'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="A collection of ORM mixins and snippet for SQLAlchemy projects",
+    description="An opinionated collection of ORM mixins and tools for SQLAlchemy projects",
     install_requires=[
-        'sqlalchemy=>1.2',
-        
+        'sqlalchemy',
+        'passlib',
+        'bcrypt',
+        'psycopg2',  
     ],
     license="MIT license",
-    long_description='TODO',
-    include_package_data=True,
+    long_description=long_description,
     keywords='sqlalchemy',
     name='pestle',
     packages=['pestle'],
-    setup_requires=setup_requirements,
     test_suite='tests',
-    tests_require=['pytest'],
+    tests_require=['pytest', 'pytest-cov', 'pytest-pgtap'],
     url='https://github.com/lmergner/pestle',
     version='0.1.0',
     zip_safe=False,
