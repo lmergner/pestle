@@ -85,7 +85,6 @@ class Searchable:
     # __abstract__ = True
 
     _trigger_ddl = (
-        # TODO: customize the trigger name
         "create trigger ts_update before insert or update on {tablename} for "
         "each row execute procedure tsvector_update_trigger(tsvector, "
         "'pg_catalog.english', 'text');"
@@ -111,7 +110,7 @@ class Searchable:
         ), {
             # Per Mike Bayer
             # https://groups.google.com/d/msg/sqlalchemy/CrjqfxdEOyM/7WnZ80HgAwAJ
-            "listeners": [("after_create", DDL(cls._trigger_ddl.format(tablename=cls.__name__)).execute_if(dialect="postgresql"))]
+            "listeners": [("after_create", DDL(cls._trigger_ddl.format(tablename=cls.__tablename__)).execute_if(dialect="postgresql"))]
         })
 
 
