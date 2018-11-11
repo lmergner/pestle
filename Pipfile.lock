@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "72621b6b5a81777327dbedd5b9167699f403301ff9daaf7fc7a13d86764cd974"
+            "sha256": "481abb7a120b8f0ff8bab43923bd8feec9ef7f8053b51ce84f1acd660d24e9ca"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -318,7 +318,7 @@
         },
         "pytest-pgtap": {
             "editable": true,
-            "path": "/Users/lmerg/code/pytest-pgtap"
+            "path": "./../pytest-pgtap"
         },
         "six": {
             "hashes": [

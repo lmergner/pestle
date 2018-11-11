@@ -11,7 +11,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
-pytest-pgtap = {editable = true, path = "/Users/lmerg/code/pytest-pgtap"}
+pytest-pgtap = {editable = true, path = "./../pytest-pgtap"}
 pylint = "*"
 
 [requires]
