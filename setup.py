@@ -29,7 +29,7 @@ setup(
         'sqlalchemy',
         'passlib',
         'bcrypt',
-        'psycopg2',  
+        'psycopg2-binary',
     ],
     license="MIT license",
     long_description=long_description,
@@ -37,7 +37,12 @@ setup(
     name='pestle',
     packages=['pestle'],
     test_suite='tests',
-    tests_require=['pytest', 'pytest-cov', 'pytest-pgtap'],
+    tests_require=[
+        'pytest',
+        'pytest-cov',
+        'pytest-pgtap @ git+https://github.com/lmergner/pytest-pgtap@v0.1.0#egg=pytest_pgtap',  # https://github.com/pypa/pip/issues/3939
+    ],
+    setup_requires=["pytest-runner"],
     url='https://github.com/lmergner/pestle',
     version='0.1.0',
     zip_safe=False,
