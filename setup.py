@@ -26,10 +26,10 @@ setup(
     ],
     description="An opinionated collection of ORM mixins and tools for SQLAlchemy projects",
     install_requires=[
-        'sqlalchemy',
-        'passlib',
-        'bcrypt',
-        'psycopg2-binary',
+        'sqlalchemy==1.3.5',
+        'passlib==1.7.1',
+        'bcrypt==3.1.7',
+        'psycopg2-binary==2.8.3',
     ],
     license="MIT license",
     long_description=long_description,
@@ -38,8 +38,8 @@ setup(
     packages=['pestle'],
     test_suite='tests',
     tests_require=[
-        'pytest',
-        'pytest-cov',
+        'pytest==4.6.3',
+        'pytest-cov==2.7.1',
         'pytest-pgtap @ git+https://github.com/lmergner/pytest-pgtap@v0.1.0#egg=pytest_pgtap',  # https://github.com/pypa/pip/issues/3939
     ],
     setup_requires=["pytest-runner"],
