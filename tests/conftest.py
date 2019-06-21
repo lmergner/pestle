@@ -7,9 +7,6 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from pestle import models
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-engine = create_engine(DATABASE_URL)
-
 Base = declarative_base(cls=models.Mixin)
 
 class Simple(Base):
@@ -21,10 +18,13 @@ class Post(models.Searchable, Base):
 class User(models.Admin, Base):
     __tablename__ = 'user'
 
-def pytest_configure(config):
+
+@pytest.fixture(scope="session", autouse=True)
+def create_tables(request):
+    DATABASE_URL = request.config.option.pgtap_uri
+    engine = create_engine(DATABASE_URL)
     print('Creating tables')
     Base.metadata.create_all(engine)
-
-def pytest_unconfigure(config):
+    yield
     print('Dropping tables')
     Base.metadata.drop_all(engine)
