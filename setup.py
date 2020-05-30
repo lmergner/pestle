@@ -8,6 +8,7 @@ from setuptools import setup
 with open('README.md') as f:
     long_description = f.read()
 
+#TODO: move bcrypt and passlib to an extras_require stanza
 setup(
     author="Luke Thomas Mergner",
     author_email='lmergner@gmail.com',
@@ -16,20 +17,15 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        # "Programming Language :: Python :: 2",
-        # 'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.4',
-        # 'Programming Language :: Python :: 3.5',
-        # 'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     description="An opinionated collection of ORM mixins and tools for SQLAlchemy projects",
     install_requires=[
-        'sqlalchemy==1.3.5',
-        'passlib==1.7.1',
+        'sqlalchemy==1.3.17',
+        'passlib==1.7.2',
         'bcrypt==3.1.7',
-        'psycopg2-binary==2.8.3',
+        'psycopg2-binary==2.8.5',
     ],
     license="MIT license",
     long_description=long_description,
