@@ -31,7 +31,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import expression
 
 
-NAMING_CONVENTION={
+NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(constraint_name)s",
@@ -48,6 +48,7 @@ class utcnow(expression.FunctionElement):
 def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
 
+
 class Mixin:
     """ Base class for SQLAlchemy models
 
@@ -55,6 +56,7 @@ class Mixin:
 
     >>> Base = declarative_base(cls=Mixin)
     """
+
     __abstract__ = True
 
     # TODO: implement query_property with session lazy loading
@@ -65,6 +67,8 @@ class Mixin:
     modified = Column(
         DateTime(timezone=True), onupdate=utcnow(), server_default=utcnow()
     )
+
+    # TODO: (re)move 'extras' to its own mixin
     extras = Column(postgresql.JSON, default={})
 
     def __repr__(self):
@@ -74,13 +78,14 @@ class Mixin:
 
 
 class Searchable:
-    """ An SQLAlchemy ORM mixin that provides a searchable interface using Postgres TSVECTOR columns 
-    
+    """ An SQLAlchemy ORM mixin that provides a searchable interface using Postgres TSVECTOR columns
+
     :example:
     >>> class Text(Searchable, Base):
     >>>     pass
-    
+
     """
+
     # Original inspiration: http://shisaa.jp/postset/postgresql-full-text-search-part-1.html
     # __abstract__ = True
 
@@ -107,11 +112,20 @@ class Searchable:
                 "tsvector_idx_%s" % cls.__tablename__,
                 "tsvector",
                 postgresql_using="gin",
-        ), {
-            # Per Mike Bayer
-            # https://groups.google.com/d/msg/sqlalchemy/CrjqfxdEOyM/7WnZ80HgAwAJ
-            "listeners": [("after_create", DDL(cls._trigger_ddl.format(tablename=cls.__tablename__)).execute_if(dialect="postgresql"))]
-        })
+            ),
+            {
+                # Per Mike Bayer
+                # https://groups.google.com/d/msg/sqlalchemy/CrjqfxdEOyM/7WnZ80HgAwAJ
+                "listeners": [
+                    (
+                        "after_create",
+                        DDL(
+                            cls._trigger_ddl.format(tablename=cls.__tablename__)
+                        ).execute_if(dialect="postgresql"),
+                    )
+                ]
+            },
+        )
 
 
 class Admin:
@@ -150,7 +164,7 @@ class Admin:
         self.password_updated = utcnow()
 
     def generate_token(self):
-        # TODO:  support for expiring tokens      
+        # TODO:  support for expiring tokens
         self.token = uuid.uuid4().hex
         self.token_updated = utcnow()
         return self.token
