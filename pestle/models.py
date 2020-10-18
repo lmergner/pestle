@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
-
 """ pestle.models
 
 Mixin and other helpers for SQLAlchemy
 """
 # https://sqlalchemy-utils.readthedocs.io/
 # https://github.com/openstack/sqlalchemy-migrate
+
+# TODO:  primary_keys should be (or also have) UUIDs for sharding
 
 import uuid
 
@@ -14,20 +14,14 @@ from sqlalchemy import (
     DDL,
     Column,
     DateTime,
-    ForeignKey,
     Index,
     Integer,
-    MetaData,
     String,
-    create_engine,
-    event,
-    exc,
     types,
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql import expression
 
 
@@ -78,7 +72,7 @@ class Mixin:
 
 
 class Searchable:
-    """ An SQLAlchemy ORM mixin that provides a searchable interface using Postgres TSVECTOR columns
+    """ An SQLAlchemy ORM mixin that provides a searchable interface using PostgreSQL TSVECTOR columns
 
     :example:
     >>> class Text(Searchable, Base):
