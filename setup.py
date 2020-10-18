@@ -8,6 +8,7 @@ from setuptools import setup
 with open("README.md") as f:
     long_description = f.read()
 
+# TODO: convert to setup.cfg per python packaging recommendations
 # TODO: move bcrypt and passlib to an extras_require stanza
 setup(
     author="Luke Thomas Mergner",
@@ -22,10 +23,12 @@ setup(
     ],
     description="An opinionated collection of ORM mixins and tools for SQLAlchemy projects",
     install_requires=[
-        "sqlalchemy==1.3.17",
-        "passlib==1.7.2",
-        "bcrypt==3.1.7",
-        "psycopg2-binary==2.8.5",
+        "sqlalchemy>=1.3.17",
+        "passlib>=1.7.2",
+        "bcrypt>=3.1.7",
+        "psycopg2-binary>=2.8.5",
+        "marshmallow==3.8.0"
+        ""
     ],
     license="MIT license",
     long_description=long_description,
