@@ -26,9 +26,10 @@ setup(
         "sqlalchemy>=1.3.17",
         "passlib>=1.7.2",
         "bcrypt>=3.1.7",
+        # TODO:  psycopg should be built form source according to the docs
         "psycopg2-binary>=2.8.5",
-        "marshmallow==3.8.0"
-        ""
+        "falcon==2.0.0",
+        "marshmallow==3.8.0" "",
     ],
     license="MIT license",
     long_description=long_description,
@@ -44,6 +45,6 @@ setup(
     ],
     setup_requires=["pytest-runner"],
     url="https://github.com/lmergner/pestle",
-    version="0.1.2",
+    version="0.1.3",
     zip_safe=False,
 )

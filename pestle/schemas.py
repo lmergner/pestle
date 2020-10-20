@@ -4,12 +4,17 @@ pestle/schema.py
 Marshmallow Schema Base Classes
 """
 
+import json
+import falcon
+from marshmallow import post_dump, post_load, pre_load, fields, Schema
 
 # https://stackoverflow.com/questions/33782180/marshmallow-nested-change-schema-behavior
+
+
 class Flagged(fields.Nested):
     """ A Nested schema field that reports itself as such """
 
-    # TODO: needs testing
+    # TODO: write tests for self-reporting nested schemas
     @property
     def schema(self) -> None:
         schema = super(Flagged, self).schema
@@ -18,7 +23,6 @@ class Flagged(fields.Nested):
 
 
 class JsonApi:
-
     @post_dump(pass_original=True)
     def jsonapi(self, data, original_data):
         """ add jsonapi data to row """
@@ -36,7 +40,7 @@ class JsonApi:
         return data
 
 
-class Base(Schema):
+class BaseSchema(Schema):
     """ Base Marshmallow Schema """
 
     # pylint: disable=E1102,W0212
@@ -74,8 +78,6 @@ class Base(Schema):
         """ unwrap the data from the envelop """
         return data.get(self.__class__._envelop_key, data)
 
-
-
     @post_dump(pass_many=True)
     def wrap(self, data, many):
         """ wrap the data in an envelop unless it's nested under another schema """
@@ -84,4 +86,3 @@ class Base(Schema):
         if not many:
             data = [data]
         return {self._envelop_key: data, "_count": len(data)}
-
