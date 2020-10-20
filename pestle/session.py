@@ -1,27 +1,30 @@
 """
 Tools to manage sqlalchemy sessions in a web application
+
+
+This code is modified from Flask-SQLAlchemy
 """
 
 from contextlib import AbstractContextManager
 import os
 import logging
-from sqlalchemy import event, create_engine
+from sqlalchemy import event, create_engine, engine, exc
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import NullPool  # , QueuePool
 
 
-logger = logging.getLogger('pestle')
+logger = logging.getLogger("pestle")
 
 
 class SessionManager(AbstractContextManager):
     """ Scoped session manager """
 
     _engine_args = dict(
-        poolclass = NullPool,
-        echo = False,
-        echo_pool = False,
-        convert_unicode = True,
-        connect_args = {},  # passed to psycopg2 
+        poolclass=NullPool,
+        echo=False,
+        echo_pool=False,
+        convert_unicode=True,
+        connect_args={},  # passed to psycopg2
     )
     _engine = None
 
@@ -29,7 +32,7 @@ class SessionManager(AbstractContextManager):
         self.url = url
         self._engine_args.update(engine_args)
         self.sessionmaker = scoped_session(sessionmaker(bind=self.engine))
-    
+
     def __repr__(self):
         return "<%s(%s)>" % (self.__class__.__name__, self.url)
 
@@ -40,7 +43,7 @@ class SessionManager(AbstractContextManager):
         if exc_val:
             logger.error(exc_val)
         self.sessionmaker.remove()
-        return (exc_val is not None)
+        return exc_val is not None
 
     @property
     def engine(self):
@@ -51,9 +54,9 @@ class SessionManager(AbstractContextManager):
 
         if not self._engine:
             self._engine = create_engine(self.url, **self._engine_args)
-            if self._engine_args['poolclass'] != NullPool:
+            if self._engine_args["poolclass"] != NullPool:
                 self.add_engine_pidguard()
-            
+
         return self._engine
 
     def add_engine_pidguard(self):
