@@ -29,7 +29,8 @@ setup(
         # TODO:  psycopg should be built form source according to the docs
         "psycopg2-binary>=2.8.5",
         "falcon==2.0.0",
-        "marshmallow==3.8.0" "",
+        "marshmallow==3.8.0",
+        "gunicorn==20.0.4",
     ],
     license="MIT license",
     long_description=long_description,
