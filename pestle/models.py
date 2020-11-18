@@ -10,18 +10,10 @@ Mixin and other helpers for SQLAlchemy
 import uuid
 
 from passlib.context import CryptContext
-from sqlalchemy import (
-    DDL,
-    Column,
-    DateTime,
-    Index,
-    Integer,
-    String,
-    types,
-)
+from sqlalchemy import DDL, Column, DateTime, Index, Integer, MetaData, String, types
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.sql import expression
 
 
@@ -162,3 +154,9 @@ class Admin:
         self.token = uuid.uuid4().hex
         self.token_updated = utcnow()
         return self.token
+
+
+def get_declarative_base():
+    return declarative_base(
+        cls=Mixin, metadata=MetaData(naming_convention=NAMING_CONVENTION),
+    )
