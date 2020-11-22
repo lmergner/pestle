@@ -6,9 +6,10 @@ __author__ = "Luke Mergner"
 import argparse
 import os
 
-from sqlalchemy import create_engine, Column, String
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
 from pestle import models
 
 url = os.environ.get("DATABASE_URL", None)
@@ -24,15 +25,19 @@ Base = declarative_base(cls=models.Mixin)
 
 
 class Simple(Base):
-    __tablename__ = "simple"
+    __tablename__ = "simples"
 
 
 class Post(models.Searchable, Base):
-    __tablename__ = "post"
+    __tablename__ = "posts"
 
 
-class User(models.Admin, Base):
-    __tablename__ = "user"
+class User(models.PasswordAuth, Base):
+    __tablename__ = "users"
+
+
+class ApiUser(models.TokenAuth, Base):
+    __tablename__ = "api_users"
 
 
 Base.metadata.drop_all(engine)

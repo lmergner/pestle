@@ -6,17 +6,46 @@ Mixin and other helpers for SQLAlchemy
 # https://github.com/openstack/sqlalchemy-migrate
 
 # TODO:  primary_keys should be (or also have) UUIDs for sharding
+# TODO:  include login tracking information
+#   # first_login should be immutable in theory
+#   first_login = Column(DateTime(timezone=True), server_default=utcnow())
+#   # last_login should be updated on every password verification
+#   last_login = Column(DateTime(timezone=True), server_default=utcnow())
+#   times_logged_in = Column(Integer)  - maybe update with a postgres function?
 
-import uuid
+# TODO: include token creator and verification logic
+#       as a mixin or class functions. Tokens can replace
+#       basic auth for API requests.
+
+# TODO: mixed in relationships must use declared_attr
+
+# TODO: rename Admin mixin to "Password" or something, since it's not just Admins that need passwords
+# TODO: write descriptive class __doc__ strings
+# TODO: document how to use the cls=Mixin declarative_base and how to use the base_factory wrapper that sets the naming_convention
+
+
+from warnings import warn
 
 from passlib.context import CryptContext
-from sqlalchemy import DDL, Column, DateTime, Index, Integer, MetaData, String, types
+from sqlalchemy import (
+    DDL,
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    MetaData,
+    String,
+    func,
+    types,
+)
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import expression
+from sqlalchemy.sql.schema import ForeignKey
 
-
+# Use naming_convention with Mixin by calling pestle.models.get_declarative_base
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -36,7 +65,7 @@ def pg_utcnow(element, compiler, **kw):
 
 
 class Mixin:
-    """ Base class for SQLAlchemy models
+    """Base class for SQLAlchemy models
 
     usage:
 
@@ -64,7 +93,7 @@ class Mixin:
 
 
 class Searchable:
-    """ An SQLAlchemy ORM mixin that provides a searchable interface using PostgreSQL TSVECTOR columns
+    """An SQLAlchemy ORM mixin that provides a searchable interface using PostgreSQL TSVECTOR columns
 
     :example:
     >>> class Text(Searchable, Base):
@@ -114,8 +143,13 @@ class Searchable:
         )
 
 
-class Admin:
-    """ Admin mixin """
+def Admin(*args, **kwargs):
+    warn(f"the Admin mixin is depreciated; use {__file__}.PasswordAuth")
+    return PasswordAuth(*args, **kwargs)
+
+
+class PasswordAuth:
+    """ A Mixin that provides password authentication methods using pathlib """
 
     # passlib will auto-update any plaintext passwords
     _pass_context = CryptContext(
@@ -124,8 +158,6 @@ class Admin:
         deprecated=["plaintext"],
         bcrypt__min_rounds=13,
     )
-    token = Column(String, unique=True, default=None)
-    token_updated = Column(DateTime(timezone=True))
     _password = Column("password", String)
     password_updated = Column(DateTime(timezone=True))
 
@@ -149,14 +181,47 @@ class Admin:
         self._password = self._pass_context.encrypt(password)
         self.password_updated = utcnow()
 
-    def generate_token(self):
+
+class TokenAuth:
+    """ A Mixin that provides token authentication methods """
+
+    @declared_attr
+    def _token(cls):
+        @cls.registry.mapped
+        class Token:
+            __tablename__ = "tokens"
+            token = Column("token", postgresql.UUID, primary_key=True)
+            created = Column(
+                "created", DateTime(timezone=True), server_default=utcnow()
+            )
+            Column(
+                "%s_oid" % cls.__tablename__,
+                Integer,
+                ForeignKey("%s_oid" % cls.__tablename__),
+            )
+
+            @classmethod
+            def create(cls):
+                pass
+
+        return relationship(Token)
+
+    def verify_token(self, token):
+        pass
+
+    @property
+    def token(self):
+        return self._token
+
+    @token.setter
+    def token(self):
         # TODO:  support for expiring tokens
-        self.token = uuid.uuid4().hex
+        self.token = func("gen_random_uuid")
         self.token_updated = utcnow()
         return self.token
 
 
 def get_declarative_base():
     return declarative_base(
-        cls=Mixin, metadata=MetaData(naming_convention=NAMING_CONVENTION),
+        cls=Mixin, metadata=MetaData(naming_convention=NAMING_CONVENTION)
     )
