@@ -5,19 +5,19 @@ Tools to manage sqlalchemy sessions in a web application
 This code is modified from Flask-SQLAlchemy
 """
 
-from contextlib import AbstractContextManager
-import os
 import logging
-from sqlalchemy import event, create_engine, engine, exc
+import os
+from contextlib import AbstractContextManager
+
+from sqlalchemy import create_engine, engine, event, exc
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import NullPool  # , QueuePool
-
 
 logger = logging.getLogger("pestle")
 
 
 class SessionManager(AbstractContextManager):
-    """ Scoped session manager """
+    """ Scoped session manager for Flask-like non-async applications """
 
     _engine_args = dict(
         poolclass=NullPool,
@@ -89,3 +89,31 @@ class SessionManager(AbstractContextManager):
                     "attempting to check out in pid %s"
                     % (connection_record.info["pid"], pid)
                 )
+
+
+try:
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+    # TODO: rewrite as a class
+    async def session_provider():
+        """ a context_manager that yields an AsyncSession for FastAPI """
+        # DATABASE_URL = os.environ.get("DATABASE_URL")
+        # engine = create_async_engine(DATABASE_URL, future=True, echo=True)
+
+        session = AsyncSession(bind=engine)
+        try:
+            yield session
+            await session.commit()
+        except exc.SQLAlchemyError as e:
+            logger.error(e)
+            await session.rollback()
+            raise e
+        finally:
+            await session.close()
+
+
+except ImportError as e:
+    logger.error(
+        "Cannot create async sessions probably because the version of SQLAlchemy is less than 1.4",
+        e,
+    )
