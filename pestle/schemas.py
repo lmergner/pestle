@@ -3,16 +3,26 @@ pestle/schema.py
 
 Marshmallow Schema Base Classes
 """
-
 import json
-import falcon
-from marshmallow import post_dump, post_load, pre_load, fields, Schema
+
+import warning
+
+try:
+    import falcon
+except ImportError:
+    warning.warn("Falcon is no longer a hard dependency because of FastAPI.")
+try:
+    from marshmallow import Schema, fields, post_dump, post_load, pre_load
+except ImportError:
+    warning.warn("Marshmallow is no longer a hard dependency because of Pydantic")
 
 # https://stackoverflow.com/questions/33782180/marshmallow-nested-change-schema-behavior
 
 
 class Flagged(fields.Nested):
     """ A Nested schema field that reports itself as such """
+
+    warning.warn("Marshmallow schemas may be depreciated in favor of Pydantic.")
 
     # TODO: write tests for self-reporting nested schemas
     @property
@@ -23,6 +33,8 @@ class Flagged(fields.Nested):
 
 
 class JsonApi:
+    warning.warn("Marshmallow schemas may be depreciated in favor of Pydantic.")
+
     @post_dump(pass_original=True)
     def jsonapi(self, data, original_data):
         """ add jsonapi data to row """
@@ -42,6 +54,8 @@ class JsonApi:
 
 class BaseSchema(Schema):
     """ Base Marshmallow Schema """
+
+    warning.warn("Marshmallow schemas may be depreciated in favor of Pydantic.")
 
     # pylint: disable=E1102,W0212
     class Meta:
