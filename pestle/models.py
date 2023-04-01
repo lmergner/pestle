@@ -27,23 +27,16 @@ Mixin and other helpers for SQLAlchemy
 from warnings import warn
 
 from passlib.context import CryptContext
-from sqlalchemy import (
-    DDL,
-    Column,
-    DateTime,
-    Index,
-    Integer,
-    MetaData,
-    String,
-    func,
-    types,
-)
+from sqlalchemy import (DDL, Column, DateTime, Index, Integer, MetaData,
+                        String, Table, func, types)
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import expression
-from sqlalchemy.sql.schema import ForeignKey
+from sqlalchemy.sql.schema import ForeignKey, UniqueConstraint
 
 # Use naming_convention with Mixin by calling pestle.models.get_declarative_base
 NAMING_CONVENTION = {
@@ -143,10 +136,6 @@ class Searchable:
         )
 
 
-def Admin(*args, **kwargs):
-    warn(f"the Admin mixin is depreciated; use {__file__}.PasswordAuth")
-    return PasswordAuth(*args, **kwargs)
-
 
 class PasswordAuth:
     """ A Mixin that provides password authentication methods using pathlib """
@@ -171,7 +160,7 @@ class PasswordAuth:
             return True
         return False
 
-    @property
+    @hybrid_property
     def password(self):
         return self._password
 
@@ -182,46 +171,61 @@ class PasswordAuth:
         self.password_updated = utcnow()
 
 
+# Bearer Token Authentication
+# https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
+class SimpleTokenAuth:
+
+    _tokens = Column("token", types.ARRAY(postgresql.UUID), unique=True, nullable=False)
+
+    def verify_token(self, token):
+        return True if token in self._tokens else False
+
+    @hybrid_property
+    def tokens(self):
+        return self._tokens
+
+    @tokens.setter
+    def tokens(self):
+        # TODO:  support for expiring tokens
+        self.tokens = func("gen_random_uuid")
+        self.token_updated = utcnow()
+        return self.tokens
+
+
 class TokenAuth:
     """ A Mixin that provides token authentication methods """
 
+    # TODO: figure out how to set the column name on the sql side
     @declared_attr
-    def _token(cls):
-        @cls.registry.mapped
-        class Token:
-            __tablename__ = "tokens"
-            token = Column("token", postgresql.UUID, primary_key=True)
-            created = Column(
+    def _tokens(cls):
+        tokens_table = Table(
+            "tokens", cls.metadata,
+            Column("token", postgresql.UUID, primary_key=True),
+            Column(
                 "created", DateTime(timezone=True), server_default=utcnow()
-            )
+            ),
             Column(
                 "%s_oid" % cls.__tablename__,
                 Integer,
                 ForeignKey("%s_oid" % cls.__tablename__),
-            )
+            ),
+        )
+        return relationship(tokens_table)
 
-            @classmethod
-            def create(cls):
-                pass
 
-        return relationship(Token)
+class Admin(PasswordAuth):
+    """ Admin is depreciated; use PasswordAuth """
 
-    def verify_token(self, token):
-        pass
-
-    @property
-    def token(self):
-        return self._token
-
-    @token.setter
-    def token(self):
-        # TODO:  support for expiring tokens
-        self.token = func("gen_random_uuid")
-        self.token_updated = utcnow()
-        return self.token
+    def __init_subclass__(self):
+        warn(f"the Admin mixin is depreciated; use {__file__}.PasswordAuth", DeprecationWarning, 2)
 
 
 def get_declarative_base():
+    """ Convenience function returning a pre-configured `sqlalchemy.ext.declarative.Base` object
+    with Mixin as our metaclass and metadata with naming_convention.
+
+    Base = get_declarative_base()
+    """
     return declarative_base(
         cls=Mixin, metadata=MetaData(naming_convention=NAMING_CONVENTION)
     )

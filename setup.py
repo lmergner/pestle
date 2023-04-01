@@ -42,7 +42,7 @@ setup(
     packages=["pestle"],
     test_suite="tests",
     tests_require=[
-        "pytest>=6.1.1",
+        "pytest<6.1.0",
         "pytest-cov>=2.9.0",
         "pytest-pgtap @ git+https://github.com/lmergner/pytest-pgtap@v0.1.0#egg=pytest_pgtap",
         # https://python-packaging.readthedocs.io/en/latest/dependencies.html#packages-not-on-pypi

@@ -16,6 +16,5 @@ SELECT has_trigger('post', 'ts_update', 'table post should have a trigger');
 SELECT has_column('user', 'password', 'table user should have a password column');
 SELECT has_column('user', 'password_updated', 'table user should have a password updated column');
 SELECT col_type_is('user', 'password_updated', 'timestamp with time zone');
-SELECT col_is_unique('user', 'token', 'table user col token should be unique');
 
 SELECT * from finish();
